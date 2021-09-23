@@ -39,5 +39,33 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    //Aレジスタに値をセット
+    Not(in=instruction[15], out=notInstruction15);
+    Or(a=notInstruction15, b=instruction[5], out=loadARegister);
+    Mux16(a[0..14]=instruction[0..14], a[15]=false, b=formerOut, sel=instruction[15], out=toA);     
+    ARegister(in=toA, load=loadARegister, out=aRegisterValue, out[0..14]=addressM);
+    
+    //Aレジスタとデータメモリの値のどちらをC命令に使うか
+    Mux16(a=aRegisterValue, b=inM, sel=instruction[12], out=compValue);
+
+    And(a=instruction[4], b=instruction[15], out=loadDRegister);
+    DRegister(in=formerOut, load=loadDRegister, out=dRegisterValue);
+    ALU(x=dRegisterValue, y=compValue, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], 
+        out=outM,out=formerOut, zr=zr, ng=ng);
+    
+    //JMP命令の条件判定
+    Not(in=ng, out=notNg);
+    Not(in=zr, out=notZr);
+    And(a=notNg, b=notZr, out=pg);
+    And(a=instruction[2], b=ng, out=jlt);
+    And(a=instruction[1], b=zr, out=jeq);
+    And(a=instruction[0], b=pg, out=jgt);
+    Or(a=jlt, b=jeq, out=jle);
+    Or(a=jle, b=jgt, out=jmpIfC);
+    And(a=jmpIfC, b=instruction[15], out=jmp);
+    Not(in=jmp, out=notJmp);
+
+    PC(in=aRegisterValue, load=jmp, inc=true, reset=reset, out[0..14]=pc, out[15]=pcValue);
+    And(a=instruction[3], b=instruction[15], out=writeM);
+
 }
