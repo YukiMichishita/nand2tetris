@@ -34,16 +34,17 @@ def main():
             parser.advance()
 
             if parser.command_type() == A_COMMAND:
+                # Aコマンドでシンボルでなく数値を直接指定された場合
                 if number_pattern.match(parser.symbol()):
                     f.write(f'0{format(int(parser.symbol()),binary_format)}\n')
                 else:
-                    if symbol_table.contains(parser.symbol()):
-                        f.write(
-                            f'0{format(int(symbol_table.get_address(parser.symbol())),binary_format)}\n')
-                    else:
+                    # 未宣言の変数の場合、シンボルテーブルに追加してカウンタを進める
+                    if not symbol_table.contains(parser.symbol()):
                         symbol_table.add_entry(
-                            parser.symbol, current_ram_address)
+                            parser.symbol(), current_ram_address)
                         current_ram_address += 1
+                    f.write(
+                        f'0{format(int(symbol_table.get_address(parser.symbol())),binary_format)}\n')
 
             if parser.command_type() == C_COMMAND:
                 comp = hack_code.HackCode.comp(parser.comp())

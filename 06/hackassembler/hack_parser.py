@@ -15,10 +15,21 @@ C_COMMAND_JUMP_PATTERN = r'(;J(GT|EQ|GE|LT|NE|LE|MP))'
 L_COMMAND_PATTERN = r'\(.+\)'
 COMMENT_PATTERN = r'//.*'
 
+# A命令にマッチ
 a_command_pattern = re.compile(A_COMMAND_PATTERN)
 # 全てのC命令にマッチ
 c_command_pattern = re.compile(
     C_COMMAND_DEST_PATTERN+'?'+C_COMMAND_COMP_PATTERN+C_COMMAND_JUMP_PATTERN+'?')
+# L命令にマッチ
+l_command_pattern = re.compile(L_COMMAND_PATTERN)
+# コメントのみの行にマッチ
+comment_pattern = re.compile(COMMENT_PATTERN)
+
+# C 命令は、
+# comp:省略不可
+# dest:省略可能
+# jump:省略可能
+# なので4パターンある。パターンによって処理を変えたいので、それぞれにマッチする正規表現を用意する。
 # comp領域のみからなるC命令にマッチ(e.g. "D")
 c_command_comp_pattern = re.compile('^'+C_COMMAND_COMP_PATTERN+'$')
 # comp領域とdest領域からなるC命令にマッチ(e.g. "MD=M+D")
@@ -30,10 +41,6 @@ c_command_comp_jump_pattern = re.compile(
 # comp領域とdest領域とjump領域からなるC命令にマッチ(e.g. "D=D+1;JMP")
 c_command_comp_dest_jump_pattern = re.compile(
     '^'+C_COMMAND_DEST_PATTERN+C_COMMAND_COMP_PATTERN+C_COMMAND_JUMP_PATTERN+'$')
-l_command_pattern = re.compile(L_COMMAND_PATTERN)
-# dest領域にマッチ(e.g. "D=")
-dest_pattern = re.compile(C_COMMAND_DEST_PATTERN)
-comment_pattern = re.compile(COMMENT_PATTERN)
 
 
 class HackParser:
@@ -82,6 +89,8 @@ class HackParser:
         return ''
 
     def dest(self):
+        # dest領域にマッチ(e.g. "D=")
+        dest_pattern = re.compile(C_COMMAND_DEST_PATTERN)
         if c_command_comp_dest_pattern.match(self.current_command) or c_command_comp_dest_jump_pattern.match(self.current_command):
             return dest_pattern.match(self.current_command).group().rstrip('=')
 
