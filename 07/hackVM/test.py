@@ -1,28 +1,22 @@
-import re
-from enum import Enum, auto
-from abc import ABCMeta, abstractmethod
+import unittest
+import io
+import main
 
 
-class Command():
-    def __init__(self, regex_pattern, arg_length):
-        self.regex_pattern = re.compile(regex_pattern)
-        self.arg_length = arg_length
+class TestHackVM(unittest.TestCase):
+
+    def test_simple_add_asm_compare(self):
+        main.main('../StackArithmetic/SimpleAdd/SimpleAdd.vm')
+        test_path = '../StackArithmetic/SimpleAdd/SimpleAdd.asm'
+        ref_path = '../test_compare/SimpleAdd.asm'
+        self.assertListEqual(list(io.open(test_path)), list(io.open(ref_path)))
+
+    def test_stack_test_asm_compare(self):
+        main.main('../StackArithmetic/StackTest/StackTest.vm')
+        test_path = '../StackArithmetic/StackTest/StackTest.asm'
+        ref_path = '../test_compare/StackTest.asm'
+        self.assertListEqual(list(io.open(test_path)), list(io.open(ref_path)))
 
 
-class CommandType():
-    C_ARITHMETIC = Command(r'(add|sub|neg|eq|gt|lt|and|or|not)', 0)
-    C_PUSH = Command(
-        fr'(push)\s*(argument|local|static|constant|this|that|pointer|temp)\s*\d+', 2)
-    C_POP = Command(
-        fr'(pop)\s*(argument|local|static|constant|this|that|pointer|temp)\s*\d+', 2)
-    C_LABEL = Command(r'', 1)
-    C_GOTO = Command(r'', 1)
-    C_IF = Command(r'', 1)
-    C_FUNCTION = Command(r'', 2)
-    C_RETURN = Command(r'', 0)
-    C_CALL = Command(r'', 2)
-    COMMENT = Command(r'//.*', 0)
-
-
-print(CommandType)
-print(CommandType.COMMENT.regex_pattern)
+if __name__ == '__main__':
+    unittest.main()

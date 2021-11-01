@@ -9,6 +9,7 @@ __pycache__
 07/*.asm
 07/*/*.asm
 07/*/*/*.asm
+!07/test_compare/
 
 08/*.asm
 08/*/*.asm
