@@ -1,77 +1,5 @@
-def binary_operation_command(operation):
-    return ['@SP',
-            'M=M-1',
-            'A=M',
-            'D=M',
-            'M=0',
-            '@SP',
-            'M=M-1',
-            'A=M',
-            operation,
-            '@SP',
-            'M=M+1'
-            ]
-
-
-def unary_operation_command(operation):
-    return ['@SP',
-            'M=M-1',
-            'A=M',
-            operation,
-            '@SP',
-            'M=M+1'
-            ]
-
-
-def compare_commands(counter, compare_str):
-    return ['@SP',
-            'M=M-1',
-            'A=M',
-            'D=M',
-            'M=0',
-            '@SP',
-            'M=M-1',
-            'A=M',
-            'D=M-D',
-            f'@TRUE{counter}',
-            compare_str,
-            '@SP',
-            'A=M',
-            'M=0',
-            f'@FALSE{counter}',
-            '0;JMP',
-            f'(TRUE{counter})',
-            '@SP',
-            'A=M',
-            'M=-1',
-            f'(FALSE{counter})',
-            '@SP',
-            'M=M+1'
-            ]
-
-
-arithmetic_commands = {'binary_operation': {'add': 'M=M+D',
-                                            'sub': 'M=M-D',
-                                            'and': 'M=M&D',
-                                            'or': 'M=M|D', },
-                       'unary_operation': {'neg': 'M=-M',
-                                           'not': 'M=!M', },
-                       'compare': {'eq': 'D;JEQ',
-                                   'gt': 'D;JGT',
-                                   'lt': 'D;JLT', }
-                       }
-
-push_pop_commands = {'push_constant': [
-    # 定数
-    'D=A',
-    '@SP',
-    'A=M',
-    'M=D',
-    '@SP',
-    'M=M+1',
-]}
-
-end = ['(END)', '@END', '0;JMP']
+from hackvm_commands import *
+import os
 
 
 class HackVMCodeWriter:
@@ -86,28 +14,30 @@ class HackVMCodeWriter:
 
     def writeArithmetic(self, command):
         self.output_file.write(f'//{command}\n')
-        if command in arithmetic_commands['binary_operation'].keys():
-            for s in binary_operation_command(arithmetic_commands['binary_operation'][command]):
-                self.output_file.write(s+'\n')
-        elif command in arithmetic_commands['unary_operation'].keys():
-            for s in unary_operation_command(arithmetic_commands['unary_operation'][command]):
-                self.output_file.write(s+'\n')
-        elif command in arithmetic_commands['compare'].keys():
-            for s in compare_commands(self.command_counter, arithmetic_commands['compare'][command]):
-                self.output_file.write(s+'\n')
+        if command in arithmetic_commands.keys():
+            self.output_file.writelines(
+                arithmetic_commands[command](self.command_counter))
         else:
             raise ValueError(f'{str(command)} is not a HackVM command')
-
         self.command_counter += 1
 
     def writePushPop(self, command, segment, index):
         self.output_file.write(f'//{command} {segment} {index} \n')
+        file_name_without_ext = os.path.splitext(
+            os.path.basename(self.output_file.name))[0]
         if command == 'push':
-            if segment == 'constant':
-                for s in [f'@{index}']+push_pop_commands['push_constant']:
-                    self.output_file.write(s+'\n')
+            if segment in push_commands.keys():
+                self.output_file.writelines(
+                    push_commands[segment](index, file_name_without_ext))
+            else:
+                raise ValueError(f'{segment} is not a segment')
+        if command == 'pop':
+            if segment in pop_commands.keys():
+                self.output_file.writelines(
+                    pop_commands[segment](index, file_name_without_ext))
+            else:
+                raise ValueError(f'{segment} is not a segment')
 
     def close(self):
-        for s in end:
-            self.output_file.write(s+'\n')
+        self.output_file.writelines(end)
         self.output_file.close()

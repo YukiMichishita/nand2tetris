@@ -5,9 +5,8 @@ import pathlib
 import sys
 
 
-def main():
-    args = sys.argv
-    source_path = pathlib.Path(args[1])
+def main(path_str):
+    source_path = pathlib.Path(path_str)
 
     if not source_path.exists:
         raise ValueError(f'{str(source_path)} does not exist')
@@ -30,9 +29,12 @@ def transrate(source_file):
             code_writer.writeArithmetic(parser.arg1())
         elif parser.command_type() == CommandType.C_PUSH:
             code_writer.writePushPop('push', parser.arg1(), parser.arg2())
+        elif parser.command_type() == CommandType.C_POP:
+            code_writer.writePushPop('pop', parser.arg1(), parser.arg2())
 
     code_writer.close()
 
 
 if __name__ == "__main__":
-    main()
+    args = sys.argv
+    main(args[1])
