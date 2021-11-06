@@ -26,11 +26,11 @@ def transrate(source_file):
     while parser.has_more_commands():
         parser.advance()
         if parser.command_type() == CommandType.C_ARITHMETIC:
-            code_writer.writeArithmetic(parser.arg1())
+            code_writer.write_arithmetic(parser.arg1())
         elif parser.command_type() == CommandType.C_PUSH:
-            code_writer.writePushPop('push', parser.arg1(), parser.arg2())
+            code_writer.write_push_pop('push', parser.arg1(), parser.arg2())
         elif parser.command_type() == CommandType.C_POP:
-            code_writer.writePushPop('pop', parser.arg1(), parser.arg2())
+            code_writer.write_push_pop('pop', parser.arg1(), parser.arg2())
 
     code_writer.close()
 
